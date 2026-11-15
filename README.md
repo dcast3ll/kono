@@ -111,6 +111,29 @@ on that same account.
 GitHub Actions runs `npm ci` and `npm test` on every push to `main` and on pull
 requests.
 
+## Agent access
+
+Create a token in the app under **Agent access** and give it to an external
+agent. The token is shown once and can be revoked at any time.
+
+Scopes: `notes:read` (private notes are always excluded) and `agent:write`.
+
+```bash
+# Read notes
+curl -H "Authorization: Bearer kono_agent_..." \
+  "https://<app>.vercel.app/api/agent/notes?from=2026-11-15&to=2026-11-15"
+
+# Write an Agent note
+curl -X POST -H "Authorization: Bearer kono_agent_..." \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Daily news","agent":"instinct"}' \
+  "https://<app>.vercel.app/api/agent/notes"
+```
+
+Agent reads and writes run inside a scoped RLS context (no service role), so
+the database enforces the token's user. The agent endpoints require
+`DATABASE_URL` in the runtime environment.
+
 ## Deployment
 
 Vercel detects `src/app.js` as an Express application, so no `serverless-http`
@@ -124,6 +147,7 @@ wrapper or `api/` rewrite is required. `vercel.json` pins functions to `iad1`
    - `UNLOCK_TOKEN_SECRET` (64 random hex characters)
    - `NODE_ENV=production`
    - `APP_TIMEZONE=America/Caracas`
+   - `DATABASE_URL` (transaction pooler; required by the agent endpoints)
 3. In Supabase, set **Authentication -> URL Configuration**:
    - Site URL: `https://<your-app>.vercel.app`
    - Redirect URLs: `https://<your-app>.vercel.app/**` and
@@ -141,4 +165,5 @@ using `DIRECT_URL`. `DATABASE_URL` and `DIRECT_URL` are not needed at runtime.
 - [x] Phase 2: auth, PIN unlock, notes API
 - [x] Phase 3: frontend (Alpine + Bootstrap, no build step)
 - [x] Phase 4: CI, Vercel deploy and production hardening
-- [ ] Manual check: email confirmation redirect in production
+- [x] Manual check: email confirmation redirect in production
+- [x] Agent access: AGENT note type, scoped tokens, read/write API
