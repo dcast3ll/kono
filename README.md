@@ -100,9 +100,25 @@ the real UI, and deletes the user afterwards. Do not run it against production.
 ## Deployment
 
 Vercel detects `src/app.js` as an Express application, so no `serverless-http`
-wrapper or `api/` rewrite is required. Connect the repository in the Vercel
-dashboard and set environment variables there. Every push to the default branch
-triggers a production deploy; pull requests get preview deployments.
+wrapper or `api/` rewrite is required. `vercel.json` pins functions to `iad1`
+(co-located with Supabase `us-east-1`) and adds baseline security headers.
+
+1. Import the repository in the Vercel dashboard.
+2. Set environment variables (Production and Preview):
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+   - `UNLOCK_TOKEN_SECRET` (64 random hex characters)
+   - `NODE_ENV=production`
+   - `APP_TIMEZONE=America/Bogota`
+3. In Supabase, set **Authentication -> URL Configuration**:
+   - Site URL: `https://<your-app>.vercel.app`
+   - Redirect URLs: `https://<your-app>.vercel.app/**` and
+     `http://localhost:3000/**`
+4. Deploy. Every push to `main` triggers production; pull requests get preview
+   deployments.
+
+Do not run migrations from Vercel; run `npm run migrate` locally or from CI
+using `DIRECT_URL`. `DATABASE_URL` and `DIRECT_URL` are not needed at runtime.
 
 ## Status
 
