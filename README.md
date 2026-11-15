@@ -2,6 +2,8 @@
 
 Daily journal with categorized notes (idea, private, checklist, work/timesheet).
 
+Production: https://kono-uz7c.vercel.app
+
 ## Stack
 
 - **Runtime:** Node.js + Express 5 (ESM)
@@ -91,11 +93,23 @@ Run `npm run dev` and open `http://localhost:3000`.
 
 ```bash
 npm test            # unit tests (node:test)
-npm run test:e2e    # browser smoke test (needs Chrome or Edge; dev-only)
+npm run test:e2e    # browser smoke test (needs Chrome or Edge)
 ```
 
 The e2e script creates a confirmed test user directly in the database, drives
-the real UI, and deletes the user afterwards. Do not run it against production.
+the real UI, and deletes the user afterwards. To run it against a deployment:
+
+```powershell
+$env:E2E_BASE_URL="https://kono-uz7c.vercel.app"; npm run test:e2e
+```
+
+It only touches the isolated test user, but do not run it while doing manual QA
+on that same account.
+
+## CI
+
+GitHub Actions runs `npm ci` and `npm test` on every push to `main` and on pull
+requests.
 
 ## Deployment
 
@@ -126,4 +140,5 @@ using `DIRECT_URL`. `DATABASE_URL` and `DIRECT_URL` are not needed at runtime.
 - [x] Phase 1: database schema, migrations, RLS
 - [x] Phase 2: auth, PIN unlock, notes API
 - [x] Phase 3: frontend (Alpine + Bootstrap, no build step)
-- [ ] Phase 4: CI, Vercel deploy and production hardening
+- [x] Phase 4: CI, Vercel deploy and production hardening
+- [ ] Manual check: email confirmation redirect in production
