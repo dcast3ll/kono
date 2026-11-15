@@ -15,5 +15,6 @@ export const env = Object.freeze({
   supabaseUrl: required("SUPABASE_URL"),
   supabaseAnonKey: required("SUPABASE_ANON_KEY"),
   unlockTokenSecret: required("UNLOCK_TOKEN_SECRET"),
+  databaseUrl: process.env.DATABASE_URL ?? null,
   isProduction: (process.env.NODE_ENV ?? "development") === "production",
 })

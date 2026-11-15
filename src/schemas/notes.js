@@ -41,18 +41,30 @@ const work = z.object({
   }),
 })
 
+const agent = z.object({
+  type: z.literal("AGENT"),
+  note_date: date,
+  title,
+  content: z.object({
+    text,
+    agent: z.string().trim().min(1).max(80).optional(),
+    model: z.string().trim().max(120).optional(),
+  }),
+})
+
 export const notePayloadSchema = z.discriminatedUnion("type", [
   idea,
   privateNote,
   checklist,
   work,
+  agent,
 ])
 
 export const dateQuerySchema = z.object({ date })
 
 export const searchQuerySchema = z.object({
   q: z.string().trim().min(1).max(200),
-  type: z.enum(["IDEA", "PRIVATE", "CHECKLIST", "WORK"]).optional(),
+  type: z.enum(["IDEA", "PRIVATE", "CHECKLIST", "WORK", "AGENT"]).optional(),
   all: z.enum(["true", "false"]).default("false"),
   date: date.optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),

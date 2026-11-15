@@ -5,6 +5,8 @@ import healthRouter from "./routes/health.js"
 import authRouter from "./routes/auth.js"
 import pinRouter from "./routes/pin.js"
 import notesRouter from "./routes/notes.js"
+import agentTokensRouter from "./routes/agent-tokens.js"
+import agentNotesRouter from "./routes/agent-notes.js"
 import { requireSameOrigin } from "./middleware/csrf.js"
 import { HttpError } from "./lib/http.js"
 
@@ -22,6 +24,8 @@ app.use("/api/health", healthRouter)
 app.use("/api/auth", authRouter)
 app.use("/api/pin", pinRouter)
 app.use("/api/notes", notesRouter)
+app.use("/api/agent/tokens", agentTokensRouter)
+app.use("/api/agent/notes", agentNotesRouter)
 
 app.use((req, res) => {
   res.status(404).json({
