@@ -1,8 +1,8 @@
 # Session Checkpoint — Kono Notes
 
 Date: 2026-11-15
-Status: Phases 0-4 complete, deployed, and cleaned up. Agent access added and
-verified locally; pending `DATABASE_URL` on Vercel and a production redeploy.
+Status: Phases 0-4 complete, deployed, and cleaned up. Agent access deployed
+and verified in production.
 
 ## Links
 
@@ -85,15 +85,15 @@ WORK/timesheet, AGENT). Multiuser, Express 5 on Vercel, Supabase Postgres.
 - Local agent e2e PASS: token create, read (private excluded), write, revoke
   401, UI render.
 - Duplicate Vercel project `kno` deleted and disconnected from Git.
+- Production agent e2e PASS: token create, read with private notes excluded,
+  write, revoke -> 401, and UI render.
 
 ## Remaining
 
-1. Add `DATABASE_URL` (transaction pooler) to Vercel (Production + Preview) and
-   redeploy; then rerun the production e2e for the agent endpoints.
-2. Generate an agent token in the app and give it to Instinct. Endpoint
-   contract in README (Agent access).
-3. Optional: CSP (blocked by Alpine's standard build using `new Function`).
-4. Optional features: dark mode, PIN change/remove UI, full-week timesheet.
+1. Generate an agent token in the app (Account -> Agent access) and give it to
+   Instinct. Endpoint contract in README (Agent access).
+2. Optional: CSP (blocked by Alpine's standard build using `new Function`).
+3. Optional features: dark mode, PIN change/remove UI, full-week timesheet.
 
 ## Gotchas
 
