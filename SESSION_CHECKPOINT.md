@@ -1,7 +1,8 @@
 # Session Checkpoint — Kono Notes
 
 Date: 2026-11-15
-Status: Phases 0-4 complete and deployed. Production auth flow verified.
+Status: Phases 0-4 complete and deployed. Production auth flow and timezone
+verified.
 
 ## Links
 
@@ -66,14 +67,15 @@ WORK/timesheet). Multiuser, Express 5 on Vercel, Supabase Postgres.
 - Local unit tests: 11/11.
 - Manual production: `dcastell@gmail.com` confirmed, PIN configured, PRIVATE
   note for `2026-11-15` stored; profile timezone migrated to `America/Caracas`.
+- After redeploy, `/api/health` reports `America/Caracas`; production e2e PASS.
 
 ## Remaining
 
-1. Update the Vercel `APP_TIMEZONE` env var to `America/Caracas` and redeploy;
-   then confirm `/api/health` reports `America/Caracas`.
-2. Optional: CSP (blocked by Alpine's standard build using `new Function`;
+1. Optional: CSP (blocked by Alpine's standard build using `new Function`;
    would require the Alpine CSP build or `'unsafe-eval'`).
-3. Optional features: dark mode, PIN change/remove UI, full-week timesheet view.
+2. Optional features: dark mode, PIN change/remove UI, full-week timesheet view.
+3. Housekeeping: delete the duplicate Vercel project (the one not linked to
+   `dcast3ll/kono` and not serving `kono-uz7c.vercel.app`).
 
 ## Gotchas
 
