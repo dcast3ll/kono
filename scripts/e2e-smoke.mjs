@@ -51,16 +51,21 @@ await db.query(
   [userId, userId, userId, email],
 )
 
-const server = app.listen(0)
-await new Promise((resolve) => server.once("listening", resolve))
-const base = `http://127.0.0.1:${server.address().port}`
+let server = null
+let base = process.env.E2E_BASE_URL
+
+if (!base) {
+  server = app.listen(0)
+  await new Promise((resolve) => server.once("listening", resolve))
+  base = `http://127.0.0.1:${server.address().port}`
+}
 
 const browser = await chromium.launch({ executablePath: chromePath, headless: true })
 const page = await browser.newPage()
 
 const consoleErrors = []
 // The initial /api/auth/me call legitimately returns 401 before login.
-const ignoredConsole = [/401 \(Unauthorized\)/, /404 \(Not Found\)/]
+const ignoredConsole = [/status of 401/, /404 \(Not Found\)/]
 page.on("console", (message) => {
   if (message.type() !== "error") return
   if (ignoredConsole.some((pattern) => pattern.test(message.text()))) return
@@ -88,6 +93,12 @@ try {
   await page.click(".auth-card button[type=submit]")
   await page.waitForSelector(".date-display", { state: "visible" })
   check(true, "login reaches the app shell")
+
+  if (base.startsWith("https://")) {
+    const cookies = await page.context().cookies(base)
+    const access = cookies.find((cookie) => cookie.name === "kono_access")
+    check(access?.secure === true, "session cookie is Secure")
+  }
 
   check(
     (await page.locator(".app-brand-name").textContent())?.trim() === "Kono Notes",
@@ -182,7 +193,7 @@ try {
   if (consoleErrors.length) console.error("console errors:", consoleErrors.join(" | "))
 } finally {
   await browser.close()
-  server.close()
+  if (server) server.close()
   await db.query("delete from auth.users where id = $1", [userId])
   await db.end()
   console.log(failures === 0 ? "E2E PASS" : `E2E FAIL (${failures})`)
