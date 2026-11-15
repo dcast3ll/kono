@@ -17,7 +17,8 @@ WORK/timesheet). Multiuser, Express 5 on Vercel, Supabase Postgres.
 
 ## Deployment
 
-- Vercel project imported from `dcast3ll/kono`; auto-deploys on push to `main`.
+- Vercel project `kono-uz7c` (domain `kono-uz7c.vercel.app`) imported from
+  `dcast3ll/kono`; auto-deploys on push to `main`.
 - Functions region `iad1` (co-located with Supabase `us-east-1`) via
   `vercel.json`.
 - Vercel env vars: `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
@@ -74,8 +75,8 @@ WORK/timesheet). Multiuser, Express 5 on Vercel, Supabase Postgres.
 1. Optional: CSP (blocked by Alpine's standard build using `new Function`;
    would require the Alpine CSP build or `'unsafe-eval'`).
 2. Optional features: dark mode, PIN change/remove UI, full-week timesheet view.
-3. Housekeeping: delete the duplicate Vercel project (the one not linked to
-   `dcast3ll/kono` and not serving `kono-uz7c.vercel.app`).
+3. Housekeeping: delete the duplicate Vercel project `kno` (keep `kono-uz7c`,
+   which owns `kono-uz7c.vercel.app`).
 
 ## Gotchas
 
