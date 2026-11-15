@@ -16,6 +16,7 @@ const TYPE_META = {
   PRIVATE: { icon: "🔒", label: "Private" },
   CHECKLIST: { icon: "☑️", label: "List" },
   WORK: { icon: "💼", label: "Work" },
+  AGENT: { icon: "🤖", label: "Agent" },
 }
 
 function newKey() {
@@ -68,6 +69,8 @@ function konoApp() {
     editor: emptyEditor(),
     search: emptySearch(),
     timesheet: { dayTotal: 0, weekTotal: 0, days: [] },
+    agentTokens: [],
+    agentTokenModal: { open: false, mode: "create", label: "Instinct", token: "", error: "", loading: false },
 
     async init() {
       setUnauthorizedHandler(() => this.handleUnauthorized())
@@ -88,7 +91,7 @@ function konoApp() {
         this.user = data.user
         this.profile = data.profile
         this.view = "app"
-        await Promise.all([this.loadNotes(), this.loadTimesheet()])
+        await Promise.all([this.loadNotes(), this.loadTimesheet(), this.loadAgentTokens()])
       } catch (error) {
         this.view = "auth"
         if (error.status !== 401) this.auth.error = error.message
@@ -157,6 +160,8 @@ function konoApp() {
       this.notes = []
       this.search = emptySearch()
       this.editor = emptyEditor()
+      this.agentTokens = []
+      this.agentTokenModal = { open: false, mode: "create", label: "Instinct", token: "", error: "", loading: false }
       this.view = "auth"
       this.auth.password = ""
       this.auth.error = ""
@@ -235,7 +240,7 @@ function konoApp() {
         title: this.editor.title.trim() || null,
       }
 
-      if (type === "IDEA" || type === "PRIVATE") {
+      if (type === "IDEA" || type === "PRIVATE" || type === "AGENT") {
         const text = this.editor.text.trim()
         if (!text) {
           this.editor.error = "Write something first."
@@ -431,6 +436,72 @@ function konoApp() {
           data.days.find((day) => day.date === this.currentDate)?.total_mins ?? 0
       } catch {
         // timesheet is non-critical
+      }
+    },
+
+    async loadAgentTokens() {
+      try {
+        const data = await api("/api/agent/tokens")
+        this.agentTokens = data.tokens ?? []
+      } catch {
+        // token management is non-critical for the notes view
+      }
+    },
+
+    openAgentTokenModal() {
+      this.agentTokenModal = {
+        open: true,
+        mode: "create",
+        label: "Instinct",
+        token: "",
+        error: "",
+        loading: false,
+      }
+    },
+
+    closeAgentTokenModal() {
+      this.agentTokenModal = {
+        open: false,
+        mode: "create",
+        label: "Instinct",
+        token: "",
+        error: "",
+        loading: false,
+      }
+    },
+
+    async createAgentToken() {
+      this.agentTokenModal.error = ""
+      this.agentTokenModal.loading = true
+      try {
+        const label = this.agentTokenModal.label.trim() || "Agent token"
+        const data = await api("/api/agent/tokens", { method: "POST", body: { label } })
+        this.agentTokenModal.token = data.token
+        this.agentTokenModal.mode = "show"
+        await this.loadAgentTokens()
+      } catch (error) {
+        this.agentTokenModal.error = error.message
+      } finally {
+        this.agentTokenModal.loading = false
+      }
+    },
+
+    async copyAgentToken() {
+      try {
+        await navigator.clipboard.writeText(this.agentTokenModal.token)
+        this.notify("Token copied")
+      } catch {
+        this.notify("Copy failed; select the token manually")
+      }
+    },
+
+    async revokeAgentToken(token) {
+      if (!confirm(`Revoke "${token.label ?? "agent token"}"?`)) return
+      try {
+        await api(`/api/agent/tokens/${token.id}`, { method: "DELETE" })
+        await this.loadAgentTokens()
+      } catch (error) {
+        this.notify(error.message)
       }
     },
 

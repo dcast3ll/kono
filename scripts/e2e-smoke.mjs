@@ -128,6 +128,12 @@ try {
   await page.waitForSelector('.note-card.type-idea:has-text("comprar cafe molido")')
   check(true, "creates an idea note")
 
+  await page.click('.type-tab:has-text("Agent")')
+  await page.fill(".composer textarea", "agent news from e2e")
+  await page.click('button:has-text("Add note")')
+  await page.waitForSelector('.note-card.type-agent:has-text("agent news from e2e")')
+  check(true, "creates an agent note from the UI")
+
   await page.click('.type-tab:has-text("Private")')
   await page.fill(".composer textarea", "secreto e2e")
   await page.click('button:has-text("Add note")')
@@ -185,6 +191,42 @@ try {
   await page.waitForSelector('h2:has-text("Search results")', { state: "visible" })
   await page.waitForSelector('.note-card:has-text("comprar cafe molido")')
   check(true, "search finds the idea")
+
+  const agent = await page.evaluate(async () => {
+    const created = await fetch("/api/agent/tokens", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ label: "e2e" }),
+    }).then(async (response) => ({ status: response.status, body: await response.json() }))
+
+    if (created.status !== 201) return { created }
+
+    const auth = { authorization: `Bearer ${created.body.token}` }
+    const read = await fetch("/api/agent/notes?limit=100", { headers: auth }).then(async (response) => ({
+      status: response.status,
+      body: await response.json(),
+    }))
+    const write = await fetch("/api/agent/notes", {
+      method: "POST",
+      headers: { ...auth, "content-type": "application/json" },
+      body: JSON.stringify({ text: "instinct wrote this", agent: "instinct" }),
+    }).then(async (response) => ({ status: response.status, body: await response.json() }))
+    const revoke = await fetch(`/api/agent/tokens/${created.body.record.id}`, { method: "DELETE" }).then((response) => response.status)
+    const afterRevoke = await fetch("/api/agent/notes?limit=1", { headers: auth }).then((response) => response.status)
+
+    return { created, read, write, revoke, afterRevoke }
+  })
+
+  check(agent.created.status === 201, "creates an agent token")
+  check(agent.read?.status === 200, "agent can read notes")
+  check(agent.read?.body?.notes?.every((note) => note.type !== "PRIVATE"), "agent cannot read private notes")
+  check(agent.write?.status === 201 && agent.write?.body?.note?.type === "AGENT", "agent writes an agent note")
+  check(agent.revoke === 200 && agent.afterRevoke === 401, "revoked agent token is rejected")
+
+  await page.reload()
+  await page.waitForSelector(".date-display", { state: "visible" })
+  await page.waitForSelector('.note-card.type-agent:has-text("instinct wrote this")')
+  check(true, "agent note appears in the UI")
 
   check(consoleErrors.length === 0, `no browser console errors (${consoleErrors.join(" | ") || "none"})`)
 } catch (error) {
