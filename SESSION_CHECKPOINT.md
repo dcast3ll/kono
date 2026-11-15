@@ -1,8 +1,7 @@
 # Session Checkpoint — Kono Notes
 
 Date: 2026-11-15
-Status: Phases 0-4 complete and deployed. Only the manual email-confirmation
-check remains.
+Status: Phases 0-4 complete and deployed. Production auth flow verified.
 
 ## Links
 
@@ -21,7 +20,7 @@ WORK/timesheet). Multiuser, Express 5 on Vercel, Supabase Postgres.
 - Functions region `iad1` (co-located with Supabase `us-east-1`) via
   `vercel.json`.
 - Vercel env vars: `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
-  `UNLOCK_TOKEN_SECRET`, `NODE_ENV=production`, `APP_TIMEZONE=America/Bogota`.
+  `UNLOCK_TOKEN_SECRET`, `NODE_ENV=production`, `APP_TIMEZONE=America/Caracas`.
   `DATABASE_URL`/`DIRECT_URL` are not used at runtime.
 - Supabase Authentication -> URL Configuration: Site URL is the Vercel domain;
   Redirect URLs include the Vercel domain and `http://localhost:3000/**`.
@@ -33,6 +32,8 @@ WORK/timesheet). Multiuser, Express 5 on Vercel, Supabase Postgres.
 - Auth: Supabase Auth with httpOnly cookies; refresh-on-401 in `requireAuth`.
   Cookies are `Secure` in production (`NODE_ENV=production`).
 - RLS per user; the API uses the user JWT, never the service role.
+- Timezone: the browser computes `note_date` in local time; the profile
+  `timezone` defaults to `America/Caracas` and drives `HH:mm` display.
 - Vercel detects the Express app exported from `src/app.js`; no
   `serverless-http` and no `api/`.
 - Frontend is in `public/`: `express.static` serves it locally, the Vercel CDN
@@ -45,8 +46,8 @@ WORK/timesheet). Multiuser, Express 5 on Vercel, Supabase Postgres.
 ## Completed
 
 - Phase 0: Express 5 ESM app, `/api/health`, local dev script.
-- Phase 1: migrations `001_init`, `002_tighten_grants`; RLS, indexes, triggers,
-  least-privilege grants.
+- Phase 1: migrations `001_init`, `002_tighten_grants`,
+  `003_timezone_caracas`; RLS, indexes, triggers, least-privilege grants.
 - Phase 2: auth, PIN, notes CRUD, checklist PATCH, search, timesheet; Zod
   validation; same-origin guard.
 - Phase 3: full Alpine frontend, header brand ("Kono Notes" / "Capture the
@@ -63,11 +64,13 @@ WORK/timesheet). Multiuser, Express 5 on Vercel, Supabase Postgres.
 - `E2E_BASE_URL=https://kono-uz7c.vercel.app npm run test:e2e` -> PASS,
   including `session cookie is Secure`.
 - Local unit tests: 11/11.
+- Manual production: `dcastell@gmail.com` confirmed, PIN configured, PRIVATE
+  note for `2026-11-15` stored; profile timezone migrated to `America/Caracas`.
 
 ## Remaining
 
-1. Manual registration on production with a real email; confirm the email link
-   lands on the Vercel domain, then sign in and create a note.
+1. Update the Vercel `APP_TIMEZONE` env var to `America/Caracas` and redeploy;
+   then confirm `/api/health` reports `America/Caracas`.
 2. Optional: CSP (blocked by Alpine's standard build using `new Function`;
    would require the Alpine CSP build or `'unsafe-eval'`).
 3. Optional features: dark mode, PIN change/remove UI, full-week timesheet view.
@@ -83,6 +86,8 @@ WORK/timesheet). Multiuser, Express 5 on Vercel, Supabase Postgres.
 - Manual `auth.users` test users need token/change columns set to `''` and
   `email_change_confirm_status = 0`.
 - Supabase blocks `@example.com` and rate-limits confirmation emails.
+- The primary user is in Venezuela (UTC-4). Profile timezone and defaults are
+  `America/Caracas`; do not assume Bogota.
 
 ## Key files
 
@@ -92,7 +97,8 @@ WORK/timesheet). Multiuser, Express 5 on Vercel, Supabase Postgres.
 - `src/schemas/{auth,notes}.js`
 - `src/routes/{health,auth,pin,notes}.js`
 - `public/index.html`, `public/css/app.css`, `public/js/{app,api,date}.js`
-- `migrations/001_init.sql`, `migrations/002_tighten_grants.sql`
+- `migrations/001_init.sql`, `migrations/002_tighten_grants.sql`,
+  `migrations/003_timezone_caracas.sql`
 - `scripts/migrate.js`, `scripts/set-db-password.ps1`, `scripts/e2e-smoke.mjs`
 - `tests/unit.test.js`, `tests/date.test.js`
 - `vercel.json`, `.github/workflows/ci.yml`

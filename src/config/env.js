@@ -11,7 +11,7 @@ const required = (name) => {
 export const env = Object.freeze({
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: Number(process.env.PORT ?? 3000),
-  appTimezone: process.env.APP_TIMEZONE ?? "America/Bogota",
+  appTimezone: process.env.APP_TIMEZONE ?? "America/Caracas",
   supabaseUrl: required("SUPABASE_URL"),
   supabaseAnonKey: required("SUPABASE_ANON_KEY"),
   unlockTokenSecret: required("UNLOCK_TOKEN_SECRET"),

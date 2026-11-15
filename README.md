@@ -123,7 +123,7 @@ wrapper or `api/` rewrite is required. `vercel.json` pins functions to `iad1`
    - `SUPABASE_ANON_KEY`
    - `UNLOCK_TOKEN_SECRET` (64 random hex characters)
    - `NODE_ENV=production`
-   - `APP_TIMEZONE=America/Bogota`
+   - `APP_TIMEZONE=America/Caracas`
 3. In Supabase, set **Authentication -> URL Configuration**:
    - Site URL: `https://<your-app>.vercel.app`
    - Redirect URLs: `https://<your-app>.vercel.app/**` and
