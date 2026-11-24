@@ -222,12 +222,17 @@
 
             <div x-show="!search.active">
               <section class="composer">
+                <div class="composer-editing" x-show="editor.editingId" x-cloak>
+                  <span>Editing <strong x-text="typeLabel(editor.type)"></strong></span>
+                  <button class="btn btn-sm btn-outline-secondary" type="button" @click="cancelEdit()">Cancel</button>
+                </div>
+
                 <div class="type-tabs" role="tablist">
-                  <button type="button" class="type-tab" :class="{ active: editor.type === 'IDEA' }" @click="editor.type = 'IDEA'">💡 Idea</button>
-                  <button type="button" class="type-tab" :class="{ active: editor.type === 'PRIVATE' }" @click="editor.type = 'PRIVATE'">🔒 Private</button>
-                  <button type="button" class="type-tab" :class="{ active: editor.type === 'CHECKLIST' }" @click="editor.type = 'CHECKLIST'">☑️ List</button>
-                  <button type="button" class="type-tab" :class="{ active: editor.type === 'WORK' }" @click="editor.type = 'WORK'">💼 Work</button>
-                  <button type="button" class="type-tab" :class="{ active: editor.type === 'AGENT' }" @click="editor.type = 'AGENT'">🤖 Agent</button>
+                  <button type="button" class="type-tab" :disabled="Boolean(editor.editingId)" :class="{ active: editor.type === 'IDEA' }" @click="editor.type = 'IDEA'">💡 Idea</button>
+                  <button type="button" class="type-tab" :disabled="Boolean(editor.editingId)" :class="{ active: editor.type === 'PRIVATE' }" @click="editor.type = 'PRIVATE'">🔒 Private</button>
+                  <button type="button" class="type-tab" :disabled="Boolean(editor.editingId)" :class="{ active: editor.type === 'CHECKLIST' }" @click="editor.type = 'CHECKLIST'">☑️ List</button>
+                  <button type="button" class="type-tab" :disabled="Boolean(editor.editingId)" :class="{ active: editor.type === 'WORK' }" @click="editor.type = 'WORK'">💼 Work</button>
+                  <button type="button" class="type-tab" :disabled="Boolean(editor.editingId)" :class="{ active: editor.type === 'AGENT' }" @click="editor.type = 'AGENT'">🤖 Agent</button>
                 </div>
 
                 <input
@@ -303,7 +308,7 @@
 
                 <div class="composer-actions">
                   <button class="btn btn-primary" type="button" @click="submitNote()" :disabled="editor.loading">
-                    <span x-show="!editor.loading">Add note</span>
+                    <span x-show="!editor.loading" x-text="editor.editingId ? 'Save changes' : 'Add note'"></span>
                     <span x-show="editor.loading" class="spinner-border spinner-border-sm"></span>
                   </button>
                 </div>
@@ -324,15 +329,26 @@
                     <span x-text="typeLabel(note.type)"></span>
                     <span class="dot">·</span>
                     <time x-text="formatTime(note.created_at)"></time>
-                    <button
-                      class="note-delete ms-auto"
-                      type="button"
-                      @click="deleteNote(note)"
-                      aria-label="Delete note"
-                      x-show="!note.locked"
-                    >
-                      <i class="bi bi-trash3"></i>
-                    </button>
+                    <div class="note-actions ms-auto">
+                      <button
+                        class="note-edit"
+                        type="button"
+                        @click="startEdit(note)"
+                        aria-label="Edit note"
+                        x-show="!note.locked && (note.type === 'IDEA' || note.type === 'WORK' || note.type === 'CHECKLIST')"
+                      >
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button
+                        class="note-delete"
+                        type="button"
+                        @click="deleteNote(note)"
+                        aria-label="Delete note"
+                        x-show="!note.locked"
+                      >
+                        <i class="bi bi-trash3"></i>
+                      </button>
+                    </div>
                   </header>
 
                   <template x-if="note.locked">

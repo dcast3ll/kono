@@ -58,6 +58,14 @@ test("note payload accepts valid types", () => {
     content: { task: "line one\n- line two", duration_mins: 30 },
   })
   assert.equal(workNote.content.task.includes("\n"), true)
+
+  const editedChecklist = notePayloadSchema.parse({
+    type: "CHECKLIST",
+    note_date: "2026-11-09",
+    content: [{ id: "item-1", text: "edited", done: true }],
+  })
+  assert.equal(editedChecklist.content[0].done, true)
+  assert.equal(editedChecklist.content[0].id, "item-1")
 })
 
 test("note payload rejects invalid payloads", () => {

@@ -307,6 +307,24 @@ button {
   font-weight: 600;
 }
 
+.type-tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.composer-editing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--kono-accent-soft);
+  color: var(--kono-accent);
+  font-size: 0.85rem;
+}
+
 .composer-title {
   margin-bottom: 8px;
   font-weight: 600;
@@ -406,6 +424,13 @@ button {
   line-height: 1.5;
 }
 
+.note-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.note-edit,
 .note-delete {
   border: 0;
   background: transparent;
@@ -416,9 +441,15 @@ button {
   transition: opacity 0.15s ease, color 0.15s ease;
 }
 
+.note-card:hover .note-edit,
 .note-card:hover .note-delete,
+.note-edit:focus-visible,
 .note-delete:focus-visible {
   opacity: 1;
+}
+
+.note-edit:hover {
+  color: var(--kono-accent);
 }
 
 .note-delete:hover {

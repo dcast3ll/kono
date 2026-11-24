@@ -27,6 +27,8 @@ function newKey() {
 function emptyEditor() {
   return {
     type: "IDEA",
+    editingId: null,
+    noteDate: null,
     title: "",
     text: "",
     items: [{ key: newKey(), text: "" }],
@@ -169,6 +171,7 @@ function konoApp() {
     },
 
     onDateChange() {
+      if (this.editor.editingId) this.resetEditor()
       if (this.search.active) this.clearSearch()
       this.loadNotes()
       this.loadTimesheet()
@@ -225,9 +228,50 @@ function konoApp() {
       if (this.editor.items.length === 0) this.addItem()
     },
 
+    startEdit(note) {
+      if (note.locked) return
+      if (!["IDEA", "WORK", "CHECKLIST"].includes(note.type)) return
+      if (this.search.active) this.clearSearch()
+
+      const duration = Number(note.content?.duration_mins) || 0
+      const checklistItems =
+        note.type === "CHECKLIST" && Array.isArray(note.content) && note.content.length > 0
+          ? note.content.map((item) => ({
+              key: item.id,
+              id: item.id,
+              text: item.text,
+              done: item.done,
+            }))
+          : [{ key: newKey(), text: "" }]
+
+      this.editor = {
+        type: note.type,
+        editingId: note.id,
+        noteDate: note.note_date,
+        title: note.title ?? "",
+        text: note.type === "IDEA" ? note.content?.text ?? "" : "",
+        task: note.type === "WORK" ? note.content?.task ?? "" : "",
+        hours: note.type === "WORK" ? Math.floor(duration / 60) : 0,
+        minutes: note.type === "WORK" ? duration % 60 : 0,
+        items: checklistItems,
+        error: "",
+        loading: false,
+      }
+
+      setTimeout(() => {
+        document.querySelector(".composer")?.scrollIntoView({ behavior: "smooth", block: "start" })
+        document.querySelector(".composer-title")?.focus()
+      }, 0)
+    },
+
+    cancelEdit() {
+      this.resetEditor()
+    },
+
     async submitNote() {
       this.editor.error = ""
       const type = this.editor.type
+      const editingId = this.editor.editingId
 
       if (type === "PRIVATE" && !this.profile?.pinConfigured) {
         this.editor.error = "Set a PIN before creating private notes."
@@ -236,7 +280,7 @@ function konoApp() {
 
       const payload = {
         type,
-        note_date: this.currentDate,
+        note_date: this.editor.noteDate ?? this.currentDate,
         title: this.editor.title.trim() || null,
       }
 
@@ -249,8 +293,12 @@ function konoApp() {
         payload.content = { text }
       } else if (type === "CHECKLIST") {
         const items = this.editor.items
-          .map((item) => ({ text: item.text.trim() }))
-          .filter((item) => item.text)
+          .map((item) => {
+            const text = item.text.trim()
+            if (!text) return null
+            return item.id ? { id: item.id, text, done: Boolean(item.done) } : { text }
+          })
+          .filter(Boolean)
         if (items.length === 0) {
           this.editor.error = "Add at least one item."
           return
@@ -273,12 +321,18 @@ function konoApp() {
 
       this.editor.loading = true
       try {
-        const data = await api("/api/notes", {
-          method: "POST",
+        const data = await api(editingId ? `/api/notes/${editingId}` : "/api/notes", {
+          method: editingId ? "PUT" : "POST",
           body: payload,
           unlockToken: this.unlockToken,
         })
-        this.notes.push(data.note)
+
+        if (editingId) {
+          this.notes = this.notes.map((note) => (note.id === data.note.id ? data.note : note))
+        } else {
+          this.notes.push(data.note)
+        }
+
         this.resetEditor()
         if (type === "WORK") await this.loadTimesheet()
       } catch (error) {
@@ -296,6 +350,7 @@ function konoApp() {
           unlockToken: this.unlockToken,
         })
         this.notes = this.notes.filter((item) => item.id !== note.id)
+        if (this.editor.editingId === note.id) this.resetEditor()
         if (note.type === "WORK") await this.loadTimesheet()
       } catch (error) {
         this.notify(error.message)

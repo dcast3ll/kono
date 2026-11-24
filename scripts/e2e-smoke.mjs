@@ -133,12 +133,14 @@ try {
   await page.click('button:has-text("Add note")')
   await page.waitForSelector('.note-card.type-agent:has-text("agent news from e2e")')
   check(true, "creates an agent note from the UI")
+  check(!(await page.locator(".note-card.type-agent .note-edit").isVisible()), "agent notes are not editable")
 
   await page.click('.type-tab:has-text("Private")')
   await page.fill(".composer textarea", "secreto e2e")
   await page.click('button:has-text("Add note")')
   await page.waitForSelector('.note-card.type-private:has-text("secreto e2e")')
   check(true, "creates a private note while unlocked")
+  check(!(await page.locator(".note-card.type-private .note-edit").isVisible()), "private notes are not editable")
 
   await page.click('button[title="Lock private notes"]')
   await page.waitForSelector(".note-card.type-private .private-locked", { state: "visible" })
@@ -188,6 +190,44 @@ try {
     () => document.querySelector(".timesheet-card .display-6")?.textContent?.trim() === "1h 30m",
   )
   check(true, "timesheet totals the work note")
+
+  await page.hover(".note-card.type-idea")
+  await page.click(".note-card.type-idea .note-edit")
+  await page.waitForSelector(".composer-editing", { state: "visible" })
+  await page.fill(".composer-title", "Edited idea")
+  await page.fill(".composer textarea", "comprar cafe molido editado")
+  await page.click('button:has-text("Save changes")')
+  await page.waitForSelector('.note-card.type-idea:has-text("comprar cafe molido editado")')
+  check(
+    (await page.locator(".note-card.type-idea h3").textContent())?.trim() === "Edited idea",
+    "edits an idea title and text",
+  )
+
+  await page.hover(".note-card.type-work")
+  await page.click(".note-card.type-work .note-edit")
+  await page.waitForSelector(".composer-editing", { state: "visible" })
+  await page.fill(".work-task-input", "reunion editada")
+  await page.locator(".duration-field input").nth(0).fill("2")
+  await page.locator(".duration-field input").nth(1).fill("0")
+  await page.click('button:has-text("Save changes")')
+  await page.waitForSelector('.note-card.type-work:has-text("reunion editada")')
+  await page.waitForFunction(
+    () => document.querySelector(".timesheet-card .display-6")?.textContent?.trim() === "2h",
+  )
+  check(true, "edits a work note including hours")
+
+  await page.hover(".note-card.type-checklist")
+  await page.click(".note-card.type-checklist .note-edit")
+  await page.waitForSelector(".composer-editing", { state: "visible" })
+  await page.locator('input[placeholder="Item"]').nth(1).fill("tarea dos editada")
+  await page.click('button:has-text("Save changes")')
+  await page.waitForSelector('.note-card.type-checklist:has-text("tarea dos editada")')
+  const editedCheckbox = page
+    .locator(".note-card.type-checklist")
+    .last()
+    .locator('input[type="checkbox"]')
+    .first()
+  check(await editedCheckbox.isChecked(), "edits a checklist and preserves done state")
 
   await page.fill(".search-input input", "cafe")
   await page.waitForSelector('h2:has-text("Search results")', { state: "visible" })
