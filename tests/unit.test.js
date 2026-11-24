@@ -51,6 +51,13 @@ test("note payload accepts valid types", () => {
     content: { text: "news", agent: "instinct", model: "test" },
   })
   assert.equal(agentNote.content.agent, "instinct")
+
+  const workNote = notePayloadSchema.parse({
+    type: "WORK",
+    note_date: "2026-11-09",
+    content: { task: "line one\n- line two", duration_mins: 30 },
+  })
+  assert.equal(workNote.content.task.includes("\n"), true)
 })
 
 test("note payload rejects invalid payloads", () => {

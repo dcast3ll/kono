@@ -177,11 +177,13 @@ try {
   check(await persisted.isChecked(), "checklist state persists after reload")
 
   await page.click('.type-tab:has-text("Work")')
-  await page.fill('input[placeholder="Task"]', "reunion e2e")
+  await page.fill(".work-task-input", "reunion e2e\n- segunda linea")
   await page.locator(".duration-field input").nth(0).fill("1")
   await page.locator(".duration-field input").nth(1).fill("30")
   await page.click('button:has-text("Add note")')
   await page.waitForSelector('.note-card.type-work:has-text("reunion e2e")')
+  const workText = await page.locator(".note-card.type-work .work-task").last().textContent()
+  check(workText?.includes("\n"), "work task preserves line breaks")
   await page.waitForFunction(
     () => document.querySelector(".timesheet-card .display-6")?.textContent?.trim() === "1h 30m",
   )

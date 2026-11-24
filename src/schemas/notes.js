@@ -36,7 +36,7 @@ const work = z.object({
   note_date: date,
   title,
   content: z.object({
-    task: z.string().trim().min(1).max(500),
+    task: z.string().trim().min(1).max(5000),
     duration_mins: z.number().int().min(1).max(24 * 60),
   }),
 })

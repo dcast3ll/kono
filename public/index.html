@@ -279,13 +279,13 @@
 
                 <template x-if="editor.type === 'WORK'">
                   <div class="mt-2">
-                    <input
-                      class="form-control mb-2"
-                      type="text"
-                      placeholder="Task"
-                      maxlength="500"
+                    <textarea
+                      class="form-control mb-2 work-task-input"
+                      rows="3"
+                      placeholder="Task (one bullet per line)"
+                      maxlength="5000"
                       x-model="editor.task"
-                    />
+                    ></textarea>
                     <div class="duration-row">
                       <label class="duration-field">
                         <span>Hours</span>
@@ -370,7 +370,7 @@
 
                       <template x-if="note.type === 'WORK'">
                         <p class="work-line">
-                          <span x-text="note.content?.task"></span>
+                          <span class="work-task" x-text="note.content?.task"></span>
                           <span class="badge text-bg-secondary" x-text="formatMinutes(note.content?.duration_mins)"></span>
                         </p>
                       </template>
